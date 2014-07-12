@@ -2,7 +2,7 @@
 
 <Deployment xmlns="http://schemas.microsoft.com/windowsphone/2012/deployment" AppPlatformVersion="8.0">
   <DefaultLanguage xmlns="" code="en-US"/>
-  <App xmlns="" ProductID="af0d1808-7265-4a45-b8ed-836c74f4e291" Title="XFormsPreviewer.WinPhone" RuntimeType="Silverlight" Version="1.0.0.0" Genre="apps.normal"  Author="XFormsPreviewer.WinPhone author" Description="Sample description" Publisher="XFormsPreviewer.WinPhone" PublisherID="d0b0f8ea-e650-4cac-8c60-55036adc623a">
+  <App xmlns="" ProductID="{af0d1808-7265-4a45-b8ed-836c74f4e291}" Title="XFormsPreviewer.WinPhone" RuntimeType="Silverlight" Version="1.0.0.0" Genre="apps.normal"  Author="XFormsPreviewer.WinPhone author" Description="Sample description" Publisher="XFormsPreviewer.WinPhone" PublisherID="{d0b0f8ea-e650-4cac-8c60-55036adc623a}">
     <IconPath IsRelative="true" IsResource="false">Assets\ApplicationIcon.png</IconPath>
     <Capabilities>
       <Capability Name="ID_CAP_NETWORKING"/>
