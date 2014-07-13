@@ -25,5 +25,7 @@ The MIT License (MIT)
 - 動的 Binding の実装
 - デザイン時の Data Binding の実装
 
+# 説明
 Xamarin.Forms 用のプレビューアをアルファ版で公開 | Moonmile Solutions Blog
+
 http://www.moonmile.net/blog/archives/6030
