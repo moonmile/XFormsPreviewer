@@ -1,0 +1,13 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Sample\XFormsSampleApp\XFormsSampleApp\MainPage.xaml">
+    <Files>
+      <File FileName="Sample\XFormsSampleApp\XFormsSampleApp\MainPage.xaml" Line="11" Column="15" />
+      <File FileName="XFormsPreviewHost\Program.cs" Line="31" Column="45" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
