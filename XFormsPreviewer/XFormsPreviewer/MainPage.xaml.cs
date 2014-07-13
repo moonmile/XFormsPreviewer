@@ -7,20 +7,37 @@ using Moonmile.XFormsProvider;
 using System.IO;
 using Xamarin.Forms;
 using System.Reflection;
+using System.Net.Http;
 
 
 namespace XFormsPreviewer
 {
     public partial class MainPage
     {
+        public int Port { get; set; }
+        public string Hostname { get; set; }
+        public Uri Uri
+        {
+            get
+            {
+                return new Uri(string.Format("http://{0}:{1}/get/", this.Hostname, this.Port));
+            }
+        }
+
         public MainPage()
         {
             InitializeComponent();
+
+            this.Port = 10150;
+            // TODO: Change IP address of XFormsPreviewHost.exe on machine.
+            // XAML ファイルをホスティングしている PC の IP アドレスを書く。
+            // エミュレータから名前解決ができれば、マシン名でもOK.
+            this.Hostname = "172.16.0.9";
         }
 
         void OnClickPreview(object sender, EventArgs e)
         {
-            // var page = new NewPage();
+            // XAML 文字列を直接書き込むパターン
             string xml = @"<?xml version='1.0' encoding='utf-8' ?>
 <ContentPage xmlns='http://xamarin.com/schemas/2014/forms'
 					   xmlns:x='http://schemas.microsoft.com/winfx/2009/xaml'
@@ -37,6 +54,7 @@ namespace XFormsPreviewer
 
         void OnClickGridPreview(object sender, EventArgs e)
         {
+            /// リソースから表示するテスト
             var st = ResourceLoader.GetObject("XFormsPreviewer.Xaml.GridDemoPage.xaml");
             var xaml = new StreamReader(st).ReadToEnd();
             var page = PageXaml.LoadXaml<ContentPage>(xaml);
@@ -72,6 +90,29 @@ namespace XFormsPreviewer
             var xaml = new StreamReader(st).ReadToEnd();
             var page = PageXaml.LoadXaml(xaml);
             this.Navigation.PushAsync(page);
+        }
+
+
+        /// <summary>
+        /// HTTP クライアント経由で XAML ファイルをロードする
+        /// http://hostname:10150/get/[num] 形式で取得する
+        /// [num] 部分は XFormsPreviewHost と合わせる
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        async void OnClickSample0(object sender, EventArgs e)
+        {
+            var hc = new HttpClient();
+            try
+            {
+                var res = await hc.GetStringAsync(this.Uri + "0");
+                var page = PageXaml.LoadXaml(res);
+                await this.Navigation.PushAsync(page);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+            }
         }
 
     }

@@ -10,5 +10,6 @@
     <Button Text="Slider Preview" Clicked="OnClickSliderPreview" />
     <Button Text="SliderTrans Preview" Clicked="OnClickSliderTransPreview" />
     <Button Text="Keyboard Preview" Clicked="OnClickKeyboardPreview" />
+    <Button Text="load sample 0" Clicked="OnClickSample0" />
   </StackLayout>
 </ContentPage>
