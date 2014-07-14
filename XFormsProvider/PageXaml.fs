@@ -19,19 +19,18 @@ module XForms =
                             yield !it :?> XElement
                         it := it.Value.NextNode
                     }
-        member this.Attribute(name:string) = 
-            if this.Attribute(XName.op_Implicit(name)) <> null then
-                this.Attribute(XName.op_Implicit(name)).Value
-            else
-                ""
+
+        member this.GetAttr(name:string) =
+            if this.Attribute(XName.Get(name)) = null then "" else this.Attribute(XName.Get(name)).Value
+
 
     // Xamarin.Forms.Element の拡張メソッド
 
     // Xamarin製XAMLをパースするクラス
     type ParseXaml() = 
 
-        let getType(propName:string, tagName:string) =
-            match propName with 
+        let getType(propName:XName, tagName:string) =
+            match propName.LocalName with 
             | "Title" -> typeof<string> 
             | "Text" -> typeof<string> 
             | "Label" -> typeof<string> 
@@ -107,10 +106,10 @@ module XForms =
             | "HorizontalOptions"|"VerticalOptions" -> typeof<LayoutOptions> 
             | _ -> null
 
-        member this.SetValue(item:Object, propName:string, s:string, tagName:string ) =
+        member this.SetValue(item:Object, propName:XName, s:string, tagName:string ) =
             let t = getType(propName, tagName)
             if t <> null then
-                let pi = item.GetType().GetRuntimeProperty(propName)
+                let pi = item.GetType().GetRuntimeProperty(propName.LocalName)
                 if pi <> null then
                     let obj = 
                         match t.Name with
@@ -134,28 +133,31 @@ module XForms =
                     if obj <> null then
                         pi.SetValue( item, obj )
 
-        member this.SetValue(el:XElement, item:Object, propName:string ) =
-            let s = el.Attribute(propName)
-            if s = "" || s.[0] <> '{' then
-                // no binding 
-                this.SetValue( item, propName, s, el.Name.LocalName )
-            else
-                // TODO:binding 
+        member this.SetValue(el:XElement, item:Object, propName:XName ) =
+            if el.Attribute(propName) = null then
                 ()
+            else 
+                let s = el.Attribute(propName).Value
+                if s = "" || s.[0] <> '{' then
+                    // no binding 
+                    this.SetValue( item, propName, s, el.Name.LocalName )
+                else
+                    // TODO:binding 
+                    ()
 
-        member this.SetProperty(el:XElement, item:Object, propName:string ) =
+        member this.SetProperty(el:XElement, item:Object, propName:XName ) =
             this.SetValue( el, item, propName )
 
         member this.SetPropertis( el:XElement, item:Object ) =
             el.Attributes() 
-                |> Seq.iter(fun (it) -> this.SetProperty( el, item, it.Name.LocalName ))
+                |> Seq.iter(fun (it) -> this.SetProperty( el, item, it.Name ))
             if el.HasAttributes then
                 let tag = el.Name.LocalName
                 for it in el.Children do
                     if it.Name.LocalName.StartsWith(tag + ".") then
                         let name = it.Name.LocalName.Substring( it.Name.LocalName.IndexOf(".")+1)
                         let value = it.Value
-                        this.SetValue( item, name, value, el.Name.LocalName )
+                        this.SetValue( item, XName.Get(name), value, el.Name.LocalName )
                 
 
         member this.SetChildren( el:XElement, item ) =
@@ -218,12 +220,12 @@ module XForms =
                         | _ -> ()
                     else
                         let view = this.LoadView(it)
-                        let toInt s = if s = "" then 0 else s |> int
-                        let toIntOne s = if s = "" then 1 else s |> int
-                        let row = toInt(it.Attribute("Grid.Row"))
-                        let column = toInt(it.Attribute("Grid.Column"))
-                        let rowspan = toIntOne(it.Attribute("Grid.RowSpan"))
-                        let colspan = toIntOne(it.Attribute("Grid.ColumnSpan"))
+                        let toInt(s) = if s = "" then 0 else s |> int
+                        let toIntOne(s) = if s = "" then 1 else s |> int
+                        let row = toInt(it.GetAttr("Grid.Row"))
+                        let column = toInt(it.GetAttr("Grid.Column"))
+                        let rowspan = toIntOne(it.GetAttr("Grid.RowSpan"))
+                        let colspan = toIntOne(it.GetAttr("Grid.ColumnSpan"))
                         item.Children.Add( view, column, column+colspan, row, row+rowspan )
             item :> View
 
@@ -235,10 +237,10 @@ module XForms =
                 if it.NodeType = XmlNodeType.Element then
                     let view = this.LoadView(it)
                     let bounds = 
-                        let v = it.Attribute("AbsoluteLayout.LayoutBounds")
+                        let v = it.GetAttr("AbsoluteLayout.LayoutBounds")
                         if v <> "" then RectangleTypeConverter().ConvertFrom(v) else null
                     let flags = 
-                        let v = it.Attribute("AbsoluteLayout.LayoutFlags")
+                        let v = it.GetAttr("AbsoluteLayout.LayoutFlags")
                         if v <> "" then AbsoluteLayoutFlagsTypeConverter().ConvertFrom(v) else null
                     if bounds = null then
                         item.Children.Add( this.LoadView(it))
