@@ -9,7 +9,9 @@ Xamarin.Froms フォーマットの XAML ファイルを動的にローディン
 - ローディング部分を暫定的に公開
 - 簡易プレビューツール 
 - 簡易プレビューホスト
-- NuGet化（予定）
+- NuGet化
+
+- x:Name 対応 FindByName<T>("name") でオブジェクトを取得
 
 # License
 
@@ -20,7 +22,6 @@ The MIT License (MIT)
 
 - Static Resource の参照
 - 外部UIモジュールの参照（特に Xamarin.Forms.Labs）
-- x:Name の参照
 - MVVM ViewModel のローディング
 - 動的 Binding の実装
 - デザイン時の Data Binding の実装
