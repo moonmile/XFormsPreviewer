@@ -24,10 +24,16 @@ module XForms =
             if this.Attribute(XName.Get(name)) = null then "" else this.Attribute(XName.Get(name)).Value
 
 
-    // Xamarin.Forms.Element の拡張メソッド
+    // name 解決    
+    let mutable ElementNames : list<( string * Element * Page)> = []
+    let FindByName(name:string,page:Page) = 
+            let ( _, obj, _ ) = ElementNames |> Seq.find( fun(n,o,p) -> n = name && p = page )
+            obj
 
     // Xamarin製XAMLをパースするクラス
     type ParseXaml() = 
+
+        let mutable rootPage:Page = null
 
         let getType(propName:XName, tagName:string) =
             match propName.LocalName with 
@@ -104,34 +110,45 @@ module XForms =
             | "IsVisible" -> typeof<bool> 
             | "IsClippedToBounds" -> typeof<bool> 
             | "HorizontalOptions"|"VerticalOptions" -> typeof<LayoutOptions> 
+
+//            | "Class" -> typeof<string>
             | _ -> null
 
         member this.SetValue(item:Object, propName:XName, s:string, tagName:string ) =
             let t = getType(propName, tagName)
             if t <> null then
-                let pi = item.GetType().GetRuntimeProperty(propName.LocalName)
-                if pi <> null then
-                    let obj = 
-                        match t.Name with
-                        | "String" -> s :> System.Object
-                        | "Int32" -> s |> int :> System.Object
-                        | "Double" -> s |> double :> System.Object
-                        | "DateTime" -> Convert.ToDateTime(s) :> System.Object
-                        | "TimeSpan" -> TimeSpan.Parse(s) :> System.Object
-                        | "Boolean" -> Convert.ToBoolean(s) :> System.Object
-                        | "Color"  -> ColorTypeConverter().ConvertFrom(s)
-                        | "Font"   -> FontTypeConverter().ConvertFrom(s)
-                        | "Thickness" -> ThicknessTypeConverter().ConvertFrom(s)
-                        | "GridLength" -> GridLengthTypeConverter().ConvertFrom(s)
-                        | "LineBreakMode" -> LineBreakModeTypeConverter().ConvertFrom(s)
-                        | "TextAlignment" -> TextAlignmentTypeConverter().ConvertFrom(s)
-                        | "StackOrientation" -> StackOrientationTypeConverter().ConvertFrom(s)
-                        | "Keyboard" -> KeyboardTypeConverter().ConvertFrom(s)
-                        | "WebViewSource" -> WebViewSourceTypeConverter().ConvertFrom(s)
-                        | "LayoutOptions" -> LayoutOptionsTypeConverter().ConvertFrom(s)
-                        | _ -> null
-                    if obj <> null then
-                        pi.SetValue( item, obj )
+                if propName.NamespaceName <> "" then
+                    // TODO: namespace
+                    match propName.NamespaceName with
+                    | "http://schemas.microsoft.com/winfx/2009/xaml" ->
+                        let el = item :?> Element
+                        ElementNames <- (s, item :?> Element, rootPage)::ElementNames
+                    | _ -> ()
+
+                else
+                    let pi = item.GetType().GetRuntimeProperty(propName.LocalName)
+                    if pi <> null then
+                        let obj =
+                            match t.Name with
+                            | "String" -> s :> System.Object
+                            | "Int32" -> s |> int :> System.Object
+                            | "Double" -> s |> double :> System.Object
+                            | "DateTime" -> Convert.ToDateTime(s) :> System.Object
+                            | "TimeSpan" -> TimeSpan.Parse(s) :> System.Object
+                            | "Boolean" -> Convert.ToBoolean(s) :> System.Object
+                            | "Color"  -> ColorTypeConverter().ConvertFrom(s)
+                            | "Font"   -> FontTypeConverter().ConvertFrom(s)
+                            | "Thickness" -> ThicknessTypeConverter().ConvertFrom(s)
+                            | "GridLength" -> GridLengthTypeConverter().ConvertFrom(s)
+                            | "LineBreakMode" -> LineBreakModeTypeConverter().ConvertFrom(s)
+                            | "TextAlignment" -> TextAlignmentTypeConverter().ConvertFrom(s)
+                            | "StackOrientation" -> StackOrientationTypeConverter().ConvertFrom(s)
+                            | "Keyboard" -> KeyboardTypeConverter().ConvertFrom(s)
+                            | "WebViewSource" -> WebViewSourceTypeConverter().ConvertFrom(s)
+                            | "LayoutOptions" -> LayoutOptionsTypeConverter().ConvertFrom(s)
+                            | _ -> null
+                        if obj <> null then
+                            pi.SetValue( item, obj )
 
         member this.SetValue(el:XElement, item:Object, propName:XName ) =
             if el.Attribute(propName) = null then
@@ -165,21 +182,24 @@ module XForms =
             let mutable it = el.FirstNode
             while it <> null do
                 if it.NodeType = XmlNodeType.Element then
-                    item.Children.Add(this.LoadView(it :?> XElement))
+                    let view = this.LoadView(it :?> XElement)
+                    item.Children.Add(view)
                 it <- it.NextNode
 
         // Create Page element
         member this.CreatePage(el:XElement, item ) =
+            rootPage <- item
             this.SetPropertis( el, item )
             item :> Page
             
         member this.CreateContentPage(el:XElement) =
             let item = new ContentPage()
+            rootPage <- item
             this.SetPropertis( el, item )
             // chiled nodes
             for it in el.Children do
                 if it.Name.LocalName.IndexOf('.') = -1 then
-                    item.Content <- this.LoadView( it )
+                    item.Content <- this.LoadView( it)
             item :> Page
 
         // Create Layout element
@@ -190,17 +210,20 @@ module XForms =
         member this.CreateContentView( el:XElement) =
             let item = new ContentView()
             this.SetPropertis( el, item )
-            item.Content <- this.LoadView( el.Children |> Seq.head )
+            item.Content <- this.LoadView( el.Children |> Seq.head)
+            item.Content.Parent <- item
             item :> View
         member this.CreateFrame( el:XElement) =
             let item = new Frame()
             this.SetPropertis( el, item )
             item.Content <- this.LoadView( el.Children |> Seq.head )
+            item.Content.Parent <- item
             item :> View
         member this.CreateScrollView( el:XElement) =
             let item = new ScrollView()
             this.SetPropertis( el, item )
-            item.Content <- this.LoadView( el.Children |> Seq.head )
+            item.Content <- this.LoadView( el.Children |> Seq.head)
+            item.Content.Parent <- item
             item :> View
         member this.CreateGrid( el:XElement ) =
             let item = new Grid()
@@ -227,6 +250,7 @@ module XForms =
                         let rowspan = toIntOne(it.GetAttr("Grid.RowSpan"))
                         let colspan = toIntOne(it.GetAttr("Grid.ColumnSpan"))
                         item.Children.Add( view, column, column+colspan, row, row+rowspan )
+                        view.Parent <- item
             item :> View
 
         member this.CreateAbsoluteLayout( el:XElement ) = 
@@ -236,6 +260,7 @@ module XForms =
             for it in el.Children do
                 if it.NodeType = XmlNodeType.Element then
                     let view = this.LoadView(it)
+                    view.Parent <- item
                     let bounds = 
                         let v = it.GetAttr("AbsoluteLayout.LayoutBounds")
                         if v <> "" then RectangleTypeConverter().ConvertFrom(v) else null
@@ -243,9 +268,9 @@ module XForms =
                         let v = it.GetAttr("AbsoluteLayout.LayoutFlags")
                         if v <> "" then AbsoluteLayoutFlagsTypeConverter().ConvertFrom(v) else null
                     if bounds = null then
-                        item.Children.Add( this.LoadView(it))
+                        item.Children.Add( view )
                     else 
-                        item.Children.Add( this.LoadView(it), bounds :?> Rectangle, flags :?> AbsoluteLayoutFlags )
+                        item.Children.Add( view, bounds :?> Rectangle, flags :?> AbsoluteLayoutFlags )
             item :> View
 
         member this.CreateRowDefinition( el:XElement ) =
@@ -265,12 +290,13 @@ module XForms =
 
         member this.LoadPage(el:XElement) =
             match el.Name.LocalName with
-            | "ContentPage" -> this.CreateContentPage(el) 
-            | "MasterDetailPage" -> this.CreatePage( el, new MasterDetailPage())
-            | "NavigationPage" -> this.CreatePage( el, new NavigationPage())
-            | "Page" -> this.CreatePage( el, new Page())
-            | "TabbedPage" -> this.CreatePage( el, new TabbedPage())
-            | _ -> null
+                | "ContentPage" -> this.CreateContentPage(el) 
+                | "MasterDetailPage" -> this.CreatePage( el, new MasterDetailPage())
+                | "NavigationPage" -> this.CreatePage( el, new NavigationPage())
+                | "Page" -> this.CreatePage( el, new Page())
+                | "TabbedPage" -> this.CreatePage( el, new TabbedPage())
+                | _ -> null
+
 
         member this.LoadView(el:XElement) =
             match el.Name.LocalName with
@@ -306,8 +332,8 @@ module XForms =
         static member LoadXaml(xaml:string) = 
             let doc = XDocument.Load( new StringReader(xaml))
             let px = new ParseXaml()
-            px.LoadPage(doc.Root) 
-
+            let page = px.LoadPage(doc.Root) 
+            page
         static member LoadXaml<'T when 'T :> Page >(xaml:string) =
             ParseXaml.LoadXaml( xaml ) :?> 'T
 

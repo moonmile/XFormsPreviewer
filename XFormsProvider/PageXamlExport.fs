@@ -14,8 +14,10 @@ type PageXaml() =
     static member LoadXaml<'T when 'T :> Page >(xaml:string) =
         Moonmile.XForms.ParseXaml.LoadXaml<'T>(xaml)
 
-    
-    
-
-
-
+    static member FindByName(page:Page, name:string) =
+        Moonmile.XForms.FindByName(name, page)
+(*
+type Page with
+    member this.FindByName( name:string ) = 
+        PageXaml.FindByName( name, page)
+*)
