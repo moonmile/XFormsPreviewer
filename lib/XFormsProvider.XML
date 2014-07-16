@@ -86,6 +86,42 @@
 <member name="">
 
 </member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:Moonmile.XForms.PageData">
+ <summary>
+ Pageクラスの情報を保持するクラス
+ </summary>
+</member>
+<member name="M:Moonmile.XForms.FindByName(System.String,Xamarin.Forms.Page)">
+ <summary>
+ 名前解決
+ </summary>
+ <param name="name"></param>
+ <param name="page"></param>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
 <member name="T:Moonmile.XForms">
 
 </member>

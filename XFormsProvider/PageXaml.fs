@@ -23,19 +23,37 @@ module XForms =
         member this.GetAttr(name:string) =
             if this.Attribute(XName.Get(name)) = null then "" else this.Attribute(XName.Get(name)).Value
 
+    /// <summary>
+    /// Pageクラスの情報を保持するクラス
+    /// </summary>
+    type PageData() = 
+        member val ElementNames:list<(string*Element)> = [] with get, set
+        member val ClassName = "" with get, set
 
-    // name 解決    
-    let mutable ElementNames : list<( string * Element * Page)> = []
+    let mutable Pages : list<(Page * PageData)> = []
+
+    [<Literal>]
+    let XMLNS_WIFX = "http://schemas.microsoft.com/winfx/2009/xaml"
+
+    /// <summary>
+    /// 名前解決
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="page"></param>
     let FindByName(name:string,page:Page) = 
-            let ( _, obj, _ ) = ElementNames |> Seq.find( fun(n,o,p) -> n = name && p = page )
-            obj
+            let ( _, pdata ) = Pages |> Seq.find( fun(p,d) -> p = page )
+            let ( _, el ) =  pdata.ElementNames |> Seq.find( fun(n,el) -> n = name )
+            el
 
     // Xamarin製XAMLをパースするクラス
     type ParseXaml() = 
 
         let mutable rootPage:Page = null
+        let mutable pageData = new PageData()
 
-        let getType(propName:XName, tagName:string) =
+        let AddPage( page ) = Pages <- ( page :> Page, pageData )::Pages
+
+        let getType(propName:XName, tagName:XName) =
             match propName.LocalName with 
             | "Title" -> typeof<string> 
             | "Text" -> typeof<string> 
@@ -69,7 +87,7 @@ module XForms =
             | "IsLoading" -> typeof<bool> 
             | "IsOpaque" -> typeof<bool> 
             | "Source" -> 
-                match tagName with
+                match tagName.LocalName with
                     | "WebView" -> typeof<WebViewSource> 
                     | "Image" -> typeof<ImageSource> 
                     | _ -> null
@@ -111,21 +129,21 @@ module XForms =
             | "IsClippedToBounds" -> typeof<bool> 
             | "HorizontalOptions"|"VerticalOptions" -> typeof<LayoutOptions> 
 
-//            | "Class" -> typeof<string>
             | _ -> null
 
-        member this.SetValue(item:Object, propName:XName, s:string, tagName:string ) =
+        member this.SetValue(item:Object, propName:XName, s:string, tagName:XName ) =
             let t = getType(propName, tagName)
             if t <> null then
-                if propName.NamespaceName <> "" then
-                    // TODO: namespace
-                    match propName.NamespaceName with
-                    | "http://schemas.microsoft.com/winfx/2009/xaml" ->
-                        let el = item :?> Element
-                        ElementNames <- (s, item :?> Element, rootPage)::ElementNames
+                match propName.NamespaceName with
+                | XMLNS_WIFX ->
+                    let el = item :?> Element
+                    match propName.LocalName with 
+                    | "Name" -> 
+                        pageData.ElementNames <- (s, item :?> Element)::pageData.ElementNames 
+                    | "Class" ->
+                        pageData.ClassName <- s
                     | _ -> ()
-
-                else
+                | _ -> 
                     let pi = item.GetType().GetRuntimeProperty(propName.LocalName)
                     if pi <> null then
                         let obj =
@@ -157,7 +175,7 @@ module XForms =
                 let s = el.Attribute(propName).Value
                 if s = "" || s.[0] <> '{' then
                     // no binding 
-                    this.SetValue( item, propName, s, el.Name.LocalName )
+                    this.SetValue( item, propName, s, el.Name )
                 else
                     // TODO:binding 
                     ()
@@ -174,7 +192,7 @@ module XForms =
                     if it.Name.LocalName.StartsWith(tag + ".") then
                         let name = it.Name.LocalName.Substring( it.Name.LocalName.IndexOf(".")+1)
                         let value = it.Value
-                        this.SetValue( item, XName.Get(name), value, el.Name.LocalName )
+                        this.SetValue( item, XName.Get(name), value, el.Name )
                 
 
         member this.SetChildren( el:XElement, item ) =
@@ -195,6 +213,8 @@ module XForms =
         member this.CreateContentPage(el:XElement) =
             let item = new ContentPage()
             rootPage <- item
+            AddPage( item )
+
             this.SetPropertis( el, item )
             // chiled nodes
             for it in el.Children do
