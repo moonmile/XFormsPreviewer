@@ -4,17 +4,43 @@ using Xamarin.Forms;
 using System.Xml.Linq;
 using System.IO;
 using Moonmile.XFormsProvider;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace XformsProvider.Test
 {
-
-    public class ClockViewModel
+    public abstract class BindableBase : INotifyPropertyChanged
     {
-        public ClockViewModel()
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] String propertyName = null)
         {
-            this.DateTime = new DateTime(2014, 5, 2);
+            if (object.Equals(storage, value)) return false;
+
+            storage = value;
+            this.OnPropertyChanged(propertyName);
+            return true;
         }
-        public DateTime DateTime { get; set; }
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            var eventHandler = this.PropertyChanged;
+            if (eventHandler != null)
+            {
+                eventHandler(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+
+    public class ClockViewModel : BindableBase
+    {
+        DateTime dateTime = new DateTime(2014, 5, 2);
+        public DateTime DateTime
+        {
+            get { return dateTime; }
+            set
+            {
+                SetProperty(ref this.dateTime, value);
+            }
+        }
     }
 
     /// <summary>
@@ -42,7 +68,6 @@ namespace XformsProvider.Test
   </Label>
 </ContentPage>";
 
-            
             var page = PageXaml.LoadXaml<ContentPage>(xml);
             Assert.IsNotNull(page);
             var label = page.FindByName<Label>("label1");
@@ -52,6 +77,16 @@ namespace XformsProvider.Test
             Assert.AreEqual(2014, bind.DateTime.Year);
             Assert.AreEqual(5, bind.DateTime.Month);
             Assert.AreEqual(2, bind.DateTime.Day);
+
+            Assert.AreEqual("2014/05/02 0:00:00", label.Text);
+            var data = label.BindingContext as ClockViewModel;
+            Assert.IsNotNull(data);
+            // Xamarin.Forms.Forms.Init() が必要
+            // プラットフォーム毎の Xamarin.Forms.Core に入っている
+            // data.DateTime = new DateTime(2000, 1, 2);
+            // Assert.AreEqual("", label.Text);
+
+
         }
     }
 }

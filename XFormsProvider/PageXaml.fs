@@ -25,7 +25,7 @@ module XForms =
             if this.Attribute(XName.Get(name)) = null then "" else this.Attribute(XName.Get(name)).Value
 
     // エイリアス
-    type BaseElement = BindingObject
+    type BaseElement = Xamarin.Forms.BindableObject
 
     /// <summary>
     /// Pageクラスの情報を保持するクラス
@@ -54,7 +54,6 @@ module XForms =
 
         let mutable rootPage:Page = null
         let mutable pageData = new PageData()
-
         let AddPage( page ) = Pages <- ( page :> Page, pageData )::Pages
 
         let getType(propName:XName, tagName:XName) =
@@ -132,12 +131,11 @@ module XForms =
             | "IsVisible" -> typeof<bool> 
             | "IsClippedToBounds" -> typeof<bool> 
             | "HorizontalOptions"|"VerticalOptions" -> typeof<LayoutOptions> 
+
             | "BindingContext" -> typeof<string>
-
-
             | _ -> null
 
-        member this.SetValue(item:obj, propName:XName, s:string, tagName:XName ) =
+        member this.SetValue(item:BaseElement, propName:XName, s:string, tagName:XName ) =
             let t = getType(propName, tagName)
             if t <> null then
                 match propName.NamespaceName with
@@ -173,8 +171,26 @@ module XForms =
                             | _ -> null
                         if obj <> null then
                             pi.SetValue( item, obj )
+        member this.SetBinding(item:BaseElement, propName:XName, s:string) =
+            if s.StartsWith("{Binding") && s.EndsWith("}") then
+                let items = s.Replace("{Binding","").Replace("}","").Split([|','|])
+                let mutable path = ""
+                let mutable format = ""
+                for it in items do
+                    let it' = it.Trim()
+                    match it' with
+                    | _ when it'.StartsWith("Path=") ->
+                        path <- it'.Replace("Path=","").Trim()
+                    | _ when it'.StartsWith("StringFormat=") ->
+                        format <- it'.Replace("StringFormat=","").Replace("{","")
+                    | _ -> path <- it'.Trim()
+                
+                let prop = item.GetType().GetRuntimeField(propName.LocalName + "Property")
+                let bp = prop.GetValue( item ) :?> BindableProperty 
+                let bind = new Binding( path, BindingMode.TwoWay, null, format )
+                item.SetBinding( bp, bind )
 
-        member this.SetValue(el:XElement, item:obj, propName:XName ) =
+        member this.SetValue(el:XElement, item:BaseElement, propName:XName ) =
             if el.Attribute(propName) = null then
                 ()
             else 
@@ -184,12 +200,12 @@ module XForms =
                     this.SetValue( item, propName, s, el.Name )
                 else
                     // TODO:binding 
-                    ()
+                    this.SetBinding( item, propName, s )
 
-        member this.SetProperty(el:XElement, item:Object, propName:XName ) =
+        member this.SetProperty(el:XElement, item:BaseElement, propName:XName ) =
             this.SetValue( el, item, propName )
 
-        member this.SetPropertis( el:XElement, item:Object ) =
+        member this.SetPropertis( el:XElement, item:BaseElement ) =
             el.Attributes() 
                 |> Seq.iter(fun (it) -> this.SetProperty( el, item, it.Name ))
 
@@ -380,6 +396,3 @@ module XForms =
             page
         static member LoadXaml<'T when 'T :> Page >(xaml:string) =
             ParseXaml.LoadXaml( xaml ) :?> 'T
-
-
-
