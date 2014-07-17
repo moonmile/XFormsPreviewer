@@ -8,6 +8,7 @@ open Xamarin.Forms
 open Moonmile.XFormsTypeConv
 
 module XForms =
+    
     /// XElement の拡張メソッド
     type XElement with
         member this.Children 
@@ -22,6 +23,9 @@ module XForms =
 
         member this.GetAttr(name:string) =
             if this.Attribute(XName.Get(name)) = null then "" else this.Attribute(XName.Get(name)).Value
+
+    // エイリアス
+    type BaseElement = BindingObject
 
     /// <summary>
     /// Pageクラスの情報を保持するクラス
@@ -133,7 +137,7 @@ module XForms =
 
             | _ -> null
 
-        member this.SetValue(item:Object, propName:XName, s:string, tagName:XName ) =
+        member this.SetValue(item:obj, propName:XName, s:string, tagName:XName ) =
             let t = getType(propName, tagName)
             if t <> null then
                 match propName.NamespaceName with
@@ -150,12 +154,12 @@ module XForms =
                     if pi <> null then
                         let obj =
                             match t.Name with
-                            | "String" -> s :> System.Object
-                            | "Int32" -> s |> int :> System.Object
-                            | "Double" -> s |> double :> System.Object
-                            | "DateTime" -> Convert.ToDateTime(s) :> System.Object
-                            | "TimeSpan" -> TimeSpan.Parse(s) :> System.Object
-                            | "Boolean" -> Convert.ToBoolean(s) :> System.Object
+                            | "String" -> s :> obj
+                            | "Int32" -> s |> int :> obj
+                            | "Double" -> s |> double :> obj
+                            | "DateTime" -> Convert.ToDateTime(s) :> obj
+                            | "TimeSpan" -> TimeSpan.Parse(s) :> obj
+                            | "Boolean" -> Convert.ToBoolean(s) :> obj
                             | "Color"  -> ColorTypeConverter().ConvertFrom(s)
                             | "Font"   -> FontTypeConverter().ConvertFrom(s)
                             | "Thickness" -> ThicknessTypeConverter().ConvertFrom(s)
@@ -170,7 +174,7 @@ module XForms =
                         if obj <> null then
                             pi.SetValue( item, obj )
 
-        member this.SetValue(el:XElement, item:Object, propName:XName ) =
+        member this.SetValue(el:XElement, item:obj, propName:XName ) =
             if el.Attribute(propName) = null then
                 ()
             else 
@@ -188,33 +192,18 @@ module XForms =
         member this.SetPropertis( el:XElement, item:Object ) =
             el.Attributes() 
                 |> Seq.iter(fun (it) -> this.SetProperty( el, item, it.Name ))
-            if el.HasAttributes then
-                let tag = el.Name.LocalName
-                for it in el.Children do
-                    if it.Name.LocalName.StartsWith(tag + ".") then
-                        let name = it.Name.LocalName.Substring( it.Name.LocalName.IndexOf(".")+1)
-                        let value = it.Value
-                        this.SetValue( item, XName.Get(name), value, el.Name )
 
-                        if name = "BindingContext" then
-                            let elBind = it.Children |> Seq.head
-                            let ns = elBind.Name.NamespaceName
-                            let asmNs = ns.Split([|';'|]).[0].Split([|':'|]).[1]
-                            let asmName = ns.Split([|';'|]).[1].Split([|'='|]).[1]
-                            let asm = Assembly.Load(AssemblyName(asmName))
-                            let t = asm.GetType( asmNs + "." + elBind.Name.LocalName)
-                            let obj = System.Activator.CreateInstance(t)
-                            let pi = item.GetType().GetRuntimeProperty("BindingContext")
-                            pi.SetValue( item, obj )
-                
-
-        member this.SetChildren( el:XElement, item ) =
-            let m = item :> Layout<View>
+        member this.SetChildren( el:XElement, item:Element ) =
             let mutable it = el.FirstNode
             while it <> null do
                 if it.NodeType = XmlNodeType.Element then
-                    let view = this.LoadView(it :?> XElement)
-                    item.Children.Add(view)
+                    let view = this.LoadView(it :?> XElement, item )
+                    if view <> null then
+                        match item with
+                        | :? Layout<View> -> 
+                            let it = item :?> Layout<View>
+                            it.Children.Add(view)
+                        | _ -> ()
                 it <- it.NextNode
 
         // Create Page element
@@ -228,11 +217,12 @@ module XForms =
             rootPage <- item
             AddPage( item )
 
-            this.SetPropertis( el, item )
-            // chiled nodes
+            // child nodes
             for it in el.Children do
-                if it.Name.LocalName.IndexOf('.') = -1 then
-                    item.Content <- this.LoadView( it)
+                let view = this.LoadView( it, item )
+                if view <> null then
+                    item.Content <- view
+            this.SetPropertis( el, item )
             item :> Page
 
         // Create Layout element
@@ -242,40 +232,38 @@ module XForms =
             item :> View
         member this.CreateContentView( el:XElement) =
             let item = new ContentView()
-            this.SetPropertis( el, item )
-            item.Content <- this.LoadView( el.Children |> Seq.head)
+            item.Content <- this.LoadView( el.Children |> Seq.head, item)
             item.Content.Parent <- item
+            this.SetPropertis( el, item )
             item :> View
         member this.CreateFrame( el:XElement) =
             let item = new Frame()
-            this.SetPropertis( el, item )
-            item.Content <- this.LoadView( el.Children |> Seq.head )
+            item.Content <- this.LoadView( el.Children |> Seq.head, item )
             item.Content.Parent <- item
+            this.SetPropertis( el, item )
             item :> View
         member this.CreateScrollView( el:XElement) =
             let item = new ScrollView()
-            this.SetPropertis( el, item )
-            item.Content <- this.LoadView( el.Children |> Seq.head)
+            item.Content <- this.LoadView( el.Children |> Seq.head, item)
             item.Content.Parent <- item
+            this.SetPropertis( el, item )
             item :> View
         member this.CreateGrid( el:XElement ) =
             let item = new Grid()
-            this.SetPropertis( el, item )
-
             for it in el.Children do
-                if it.NodeType = XmlNodeType.Element then
-                    if it.Name.LocalName.StartsWith("Grid.") then
-                        match it.Name.LocalName with
-                        | "Grid.RowDefinitions" -> 
-                            for ii in it.Children do
-                                item.RowDefinitions.Add( this.CreateRowDefinition(ii))
-                        | "Grid.ColumnDefinitions" -> 
-                            for ii in it.Children do 
-                                item.ColumnDefinitions.Add( this.CreateColumnDefinition(ii))
-                        | "Grid.BindingContext" -> ()
-                        | _ -> ()
-                    else
-                        let view = this.LoadView(it)
+                if it.Name.LocalName.StartsWith("Grid.") then
+                    match it.Name.LocalName with
+                    | "Grid.RowDefinitions" -> 
+                        for ii in it.Children do
+                            item.RowDefinitions.Add( this.CreateRowDefinition(ii))
+                    | "Grid.ColumnDefinitions" -> 
+                        for ii in it.Children do 
+                            item.ColumnDefinitions.Add( this.CreateColumnDefinition(ii))
+                    | "Grid.BindingContext" -> ()
+                    | _ -> ()
+                else
+                    let view = this.LoadView(it, item)
+                    if view <> null then
                         let toInt(s) = if s = "" then 0 else s |> int
                         let toIntOne(s) = if s = "" then 1 else s |> int
                         let row = toInt(it.GetAttr("Grid.Row"))
@@ -284,15 +272,15 @@ module XForms =
                         let colspan = toIntOne(it.GetAttr("Grid.ColumnSpan"))
                         item.Children.Add( view, column, column+colspan, row, row+rowspan )
                         view.Parent <- item
+
+            this.SetPropertis( el, item )
             item :> View
 
         member this.CreateAbsoluteLayout( el:XElement ) = 
             let item = new AbsoluteLayout()
-            this.SetPropertis( el, item )
-
             for it in el.Children do
-                if it.NodeType = XmlNodeType.Element then
-                    let view = this.LoadView(it)
+                let view = this.LoadView(it, item)
+                if view <> null then
                     view.Parent <- item
                     let bounds = 
                         let v = it.GetAttr("AbsoluteLayout.LayoutBounds")
@@ -304,6 +292,8 @@ module XForms =
                         item.Children.Add( view )
                     else 
                         item.Children.Add( view, bounds :?> Rectangle, flags :?> AbsoluteLayoutFlags )
+            this.SetPropertis( el, item )
+
             item :> View
 
         member this.CreateRowDefinition( el:XElement ) =
@@ -317,6 +307,7 @@ module XForms =
 
         // Create Widget element
         member this.CreateWidget( el:XElement, item ) =
+            this.SetChildren( el, item )
             this.SetPropertis( el, item )
             item :> View
 
@@ -331,36 +322,56 @@ module XForms =
                 | _ -> null
 
 
-        member this.LoadView(el:XElement) =
-            match el.Name.LocalName with
-            // layout 
-            | "AbsoluteLayout" -> this.CreateAbsoluteLayout(el)
-            | "ContentView" -> this.CreateContentView( el )
-            | "Frame" -> this.CreateFrame( el )
-            | "ScrollView" -> this.CreateScrollView( el )
-            | "StackLayout" -> this.CreateLayout( el, new StackLayout())
-            | "RelativeLayout" -> this.CreateLayout( el, new RelativeLayout())
-            | "Grid" -> this.CreateGrid(el)
-            // view 
-            | "ActivityIndicator" -> this.CreateWidget( el, new ActivityIndicator())
-            | "BoxView" -> this.CreateWidget( el, new BoxView())
-            | "Button" -> this.CreateWidget( el, new Button())
-            | "DatePicker" -> this.CreateWidget( el, new Xamarin.Forms.DatePicker())
-            | "Image" -> this.CreateWidget( el, new Xamarin.Forms.Image())
-            | "Editor" -> this.CreateWidget( el, new Xamarin.Forms.Editor())
-            | "Entry" -> this.CreateWidget( el, new Xamarin.Forms.Entry())
-            | "Label" -> this.CreateWidget( el, new Xamarin.Forms.Label())
-            | "ListView" -> this.CreateWidget( el, new Xamarin.Forms.ListView())
-            | "OpenGLView" -> this.CreateWidget( el, new Xamarin.Forms.OpenGLView())
-            | "Picker" -> this.CreateWidget( el, new Xamarin.Forms.Picker())
-            | "ProgressBar" -> this.CreateWidget( el, new Xamarin.Forms.ProgressBar())
-            | "SearchBar" -> this.CreateWidget( el, new Xamarin.Forms.SearchBar())
-            | "Slider" -> this.CreateWidget(el, new Slider())
-            | "Stepper" -> this.CreateWidget( el, new Xamarin.Forms.Stepper())
-            | "Switch" -> this.CreateWidget( el, new Xamarin.Forms.Switch())
-            | "TableView" -> this.CreateWidget( el, new Xamarin.Forms.TableView())
-            | "WebView" -> this.CreateWidget( el, new Xamarin.Forms.WebView())
-            | _ -> null
+        member this.LoadView(el:XElement, pa:Element) =
+            if el.Name.LocalName.IndexOf(".") < 0 then
+                match el.Name.LocalName with
+                // layout 
+                | "AbsoluteLayout" -> this.CreateAbsoluteLayout(el)
+                | "ContentView" -> this.CreateContentView( el )
+                | "Frame" -> this.CreateFrame( el )
+                | "ScrollView" -> this.CreateScrollView( el )
+                | "StackLayout" -> this.CreateLayout( el, new StackLayout())
+                | "RelativeLayout" -> this.CreateLayout( el, new RelativeLayout())
+                | "Grid" -> this.CreateGrid(el)
+                // view 
+                | "ActivityIndicator" -> this.CreateWidget( el, new ActivityIndicator())
+                | "BoxView" -> this.CreateWidget( el, new BoxView())
+                | "Button" -> this.CreateWidget( el, new Button())
+                | "DatePicker" -> this.CreateWidget( el, new Xamarin.Forms.DatePicker())
+                | "Image" -> this.CreateWidget( el, new Xamarin.Forms.Image())
+                | "Editor" -> this.CreateWidget( el, new Xamarin.Forms.Editor())
+                | "Entry" -> this.CreateWidget( el, new Xamarin.Forms.Entry())
+                | "Label" -> this.CreateWidget( el, new Xamarin.Forms.Label())
+                | "ListView" -> this.CreateWidget( el, new Xamarin.Forms.ListView())
+                | "OpenGLView" -> this.CreateWidget( el, new Xamarin.Forms.OpenGLView())
+                | "Picker" -> this.CreateWidget( el, new Xamarin.Forms.Picker())
+                | "ProgressBar" -> this.CreateWidget( el, new Xamarin.Forms.ProgressBar())
+                | "SearchBar" -> this.CreateWidget( el, new Xamarin.Forms.SearchBar())
+                | "Slider" -> this.CreateWidget(el, new Slider())
+                | "Stepper" -> this.CreateWidget( el, new Xamarin.Forms.Stepper())
+                | "Switch" -> this.CreateWidget( el, new Xamarin.Forms.Switch())
+                | "TableView" -> this.CreateWidget( el, new Xamarin.Forms.TableView())
+                | "WebView" -> this.CreateWidget( el, new Xamarin.Forms.WebView())
+                | _ -> null
+            else 
+                let name = el.Name.LocalName.Substring( el.Name.LocalName.IndexOf(".")+1)
+                let value = el.Value
+                this.SetValue( pa, XName.Get(name), value, el.Name )
+
+                if name = "BindingContext" then
+                    let elBind = el.Children |> Seq.head
+                    let ns = elBind.Name.NamespaceName
+                    let asmNs = ns.Split([|';'|]).[0].Split([|':'|]).[1]
+                    let asmName = ns.Split([|';'|]).[1].Split([|'='|]).[1]
+                    try 
+                        let asm = Assembly.Load(AssemblyName(asmName))
+                        let t = asm.GetType( asmNs + "." + elBind.Name.LocalName)
+                        let obj = System.Activator.CreateInstance(t)
+                        let pi = pa.GetType().GetRuntimeProperty("BindingContext")
+                        pi.SetValue( pa, obj )
+                    with
+                        | _ -> ()
+                null
         
         static member LoadXaml(xaml:string) = 
             let doc = XDocument.Load( new StringReader(xaml))
