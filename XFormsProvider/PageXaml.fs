@@ -128,6 +128,8 @@ module XForms =
             | "IsVisible" -> typeof<bool> 
             | "IsClippedToBounds" -> typeof<bool> 
             | "HorizontalOptions"|"VerticalOptions" -> typeof<LayoutOptions> 
+            | "BindingContext" -> typeof<string>
+
 
             | _ -> null
 
@@ -193,6 +195,17 @@ module XForms =
                         let name = it.Name.LocalName.Substring( it.Name.LocalName.IndexOf(".")+1)
                         let value = it.Value
                         this.SetValue( item, XName.Get(name), value, el.Name )
+
+                        if name = "BindingContext" then
+                            let elBind = it.Children |> Seq.head
+                            let ns = elBind.Name.NamespaceName
+                            let asmNs = ns.Split([|';'|]).[0].Split([|':'|]).[1]
+                            let asmName = ns.Split([|';'|]).[1].Split([|'='|]).[1]
+                            let asm = Assembly.Load(AssemblyName(asmName))
+                            let t = asm.GetType( asmNs + "." + elBind.Name.LocalName)
+                            let obj = System.Activator.CreateInstance(t)
+                            let pi = item.GetType().GetRuntimeProperty("BindingContext")
+                            pi.SetValue( item, obj )
                 
 
         member this.SetChildren( el:XElement, item ) =

@@ -16,7 +16,7 @@ namespace XformsProvider.Test
     public class TestNames
     {
         [TestMethod]
-        public void TestName()
+        public void TestGetName()
         {
             string xml = @"<?xml version='1.0' encoding='utf-8' ?>
 <ContentPage xmlns='http://xamarin.com/schemas/2014/forms'
@@ -51,10 +51,6 @@ namespace XformsProvider.Test
             // var button1 = PageXaml.FindByName(page, "button1") as Button;
             var label1 = page.FindByName<Label>("label1");
             var button1 = page.FindByName<Button>("button1");
-            /*
-            var label1 = page.FindByName<Label>("label1");
-            var button1 = page.FindByName<Button>("button1");
-            */
             Assert.IsNotNull( label1 );
             Assert.AreEqual("New Page", label1.Text);
             Assert.AreEqual("Click me", button1.Text);

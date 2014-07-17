@@ -62,6 +62,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="TestKeypadPage.cs" />
+    <Compile Include="TestBindingContent.cs" />
     <Compile Include="TestNames.cs" />
     <Compile Include="TestSliderBindingsPage.cs" />
     <Compile Include="TestAbsoluteDemoPage.cs" />
