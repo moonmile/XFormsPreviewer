@@ -56,6 +56,9 @@ module XForms =
         let mutable pageData = new PageData()
         let AddPage( page ) = Pages <- ( page :> Page, pageData )::Pages
 
+        /// <summary>
+        /// プロパティ名から型を推測する
+        /// </summary>
         let getType(propName:XName, tagName:XName) =
             match propName.LocalName with 
             | "Title" -> typeof<string> 
@@ -135,6 +138,13 @@ module XForms =
             | "BindingContext" -> typeof<string>
             | _ -> null
 
+        /// <summary>
+        /// プロパティへ値を設定する
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="propName"></param>
+        /// <param name="s"></param>
+        /// <param name="tagName"></param>
         member this.SetValue(item:BaseElement, propName:XName, s:string, tagName:XName ) =
             let t = getType(propName, tagName)
             if t <> null then
@@ -171,23 +181,31 @@ module XForms =
                             | _ -> null
                         if obj <> null then
                             pi.SetValue( item, obj )
+        
         member this.SetBinding(item:BaseElement, propName:XName, s:string) =
             if s.StartsWith("{Binding") && s.EndsWith("}") then
                 let items = s.Replace("{Binding","").Replace("}","").Split([|','|])
                 let mutable path = ""
                 let mutable format = ""
+                let mutable mode = BindingMode.Default
                 for it in items do
                     let it' = it.Trim()
                     match it' with
                     | _ when it'.StartsWith("Path=") ->
                         path <- it'.Replace("Path=","").Trim()
+                    | _ when it'.StartsWith("Mode=") ->
+                        match it'.Replace("Mode=","").Trim() with 
+                        | "OneWay" -> mode <- BindingMode.OneWay
+                        | "OneWayToSource" -> mode <- BindingMode.OneWayToSource
+                        | "TwoWay" -> mode <- BindingMode.TwoWay
+                        | _ -> mode <- BindingMode.Default
                     | _ when it'.StartsWith("StringFormat=") ->
-                        format <- it'.Replace("StringFormat=","").Replace("{","")
+                        format <- it'.Replace("StringFormat=","").Replace("'","")
                     | _ -> path <- it'.Trim()
                 
                 let prop = item.GetType().GetRuntimeField(propName.LocalName + "Property")
                 let bp = prop.GetValue( item ) :?> BindableProperty 
-                let bind = new Binding( path, BindingMode.TwoWay, null, format )
+                let bind = new Binding( path, mode, null, format )
                 item.SetBinding( bp, bind )
 
         member this.SetValue(el:XElement, item:BaseElement, propName:XName ) =
@@ -199,7 +217,7 @@ module XForms =
                     // no binding 
                     this.SetValue( item, propName, s, el.Name )
                 else
-                    // TODO:binding 
+                    // binding 
                     this.SetBinding( item, propName, s )
 
         member this.SetProperty(el:XElement, item:BaseElement, propName:XName ) =
