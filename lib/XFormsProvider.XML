@@ -14,8 +14,14 @@
 <member name="">
 
 </member>
-<member name="">
-
+<member name="M:Moonmile.XForms.ParseXaml.SetValue(Xamarin.Forms.BindableObject,System.Xml.Linq.XName,System.String,System.Xml.Linq.XName)">
+ <summary>
+ プロパティへ値を設定する
+ </summary>
+ <param name="item"></param>
+ <param name="propName"></param>
+ <param name="s"></param>
+ <param name="tagName"></param>
 </member>
 <member name="">
 

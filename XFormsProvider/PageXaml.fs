@@ -136,6 +136,7 @@ module XForms =
             | "HorizontalOptions"|"VerticalOptions" -> typeof<LayoutOptions> 
 
             | "BindingContext" -> typeof<string>
+            | "Command" -> typeof<string>
             | _ -> null
 
         /// <summary>

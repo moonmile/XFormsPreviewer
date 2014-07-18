@@ -3,7 +3,7 @@
   <MonoDevelop.Ide.Workbench ActiveDocument="Sample\XFormsSampleApp\XFormsSampleApp\MainPage.xaml">
     <Files>
       <File FileName="Sample\XFormsSampleApp\XFormsSampleApp\MainPage.xaml" Line="11" Column="15" />
-      <File FileName="XFormsPreviewHost\Program.cs" Line="31" Column="45" />
+      <File FileName="XFormsPreviewHost\Program.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
