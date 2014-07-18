@@ -98,10 +98,16 @@
 <member name="">
 
 </member>
+<member name="">
+
+</member>
 <member name="T:Moonmile.XForms.PageData">
  <summary>
  Pageクラスの情報を保持するクラス
  </summary>
+</member>
+<member name="">
+
 </member>
 <member name="M:Moonmile.XForms.FindByName(System.String,Xamarin.Forms.Page)">
  <summary>

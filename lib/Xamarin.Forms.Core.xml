@@ -4508,7 +4508,10 @@ namespace FormsGallery
         </member>
         <member name="T:Xamarin.Forms.INavigation">
             <summary>Interface abstracting platform-specific navigation.</summary>
-            <remarks />
+            <remarks>
+                <para>Note that on the Android platform, <see cref="T:Xamarin.Forms.INavigation" /> operations do not generate activity lifecycle notifications. For each <see cref="T:Xamarin.Forms.Page" /> that you push or pop, the Android implementation of <see cref="T:Xamarin.Forms.NavigationPage" /> simply adds or removes the content of the page to or from a single activity.</para>
+                <para>Also note that the Windows Phone platform provides navigation natively. Therefore, you do not need to use a <see cref="T:Xamarin.Forms.NavigationPage" /> object to get navigation on that platform.</para>
+            </remarks>
         </member>
         <member name="M:Xamarin.Forms.INavigation.PopAsync">
             <summary>Asynchronously removes the top <see cref="T:Xamarin.Forms.Page" /> from the navigation stack.</summary>
@@ -5749,7 +5752,8 @@ ListView CreateListView()
         <member name="T:Xamarin.Forms.MasterDetailPage">
             <summary>A <see cref="T:Xamarin.Forms.Page" /> that manages two panes of information: A master page that presents data at a high level, and a detail page that displays low-level details about information in the master.</summary>
             <remarks>
-                <para>The following example shows a basic use:</para>
+                <para>The example below, taken from the FormsGallery sample application, uses a <see cref="T:Xamarin.Forms.MasterDetailPage" /> that allows the user to view detailed information about a color that she chooses from a list. Note that the NamedColorPage class, defined in as a sublcass of <see cref="T:Xamarin.Forms.ContentPage" /> in another file in the sample application, simply displays RGB data, a <see cref="T:Xamarin.Forms.BoxView" /> with its background color set to the color that the user selected, and, finally, hue, saturation, and luminosity data.</para>
+                <para>The sample below illustrates three key concepts. First, the "Master" portion of the MasterDetailPage is represented by the <see cref="P:Xamarin.Forms.MasterDetailPage.Master" /> property, which is set to a <see cref="T:Xamarin.Forms.ListView" /> element in this example. This <see cref="T:Xamarin.Forms.ListView" /> element contains a label and a list of colors. Second, the "Detail" portion of the <see cref="T:Xamarin.Forms.MasterDetailPage" /> is represented by the <see cref="P:Xamarin.Forms.MasterDetailPage.Detail" /> property, which, in this example, is set to the NamedColorPage that was noted above. Third, and finally, the page that is represented by the <see cref="P:Xamarin.Forms.MasterDetailPage.Detail" /> property is displayed by setting the <see cref="P:Xamarin.Forms.MasterDetailPage.IsPresented" /> property to <see langword="false" />; That is, the <see cref="P:Xamarin.Forms.MasterDetailPage.IsPresented" /> property controls whether or not the page that is represented by the <see cref="P:Xamarin.Forms.MasterDetailPage.Master" /> is presented to the user.</para>
                 <example>
                     <code lang="C#"><![CDATA[
 using System;
@@ -5862,12 +5866,12 @@ namespace FormsGallery
             <remarks />
         </member>
         <member name="P:Xamarin.Forms.MasterDetailPage.IsPresented">
-            <summary>Gets or sets a value that indicates whether or not the <see cref="T:Xamarin.Forms.MasterDetailPage" /> is presented to the user.</summary>
+            <summary>Gets or sets a value that indicates whether or not the visual element that is represented by the <see cref="P:Xamarin.Forms.MasterDetailPage.Master" /> property is presented to the user.</summary>
             <value>To be added.</value>
-            <remarks>To be added.</remarks>
+            <remarks>Setting this property causes the <see cref="E:Xamarin.Forms.MasterDetailPage.IsPresentedChanged" /> event to be raised.</remarks>
         </member>
         <member name="E:Xamarin.Forms.MasterDetailPage.IsPresentedChanged">
-            <summary>Event that is raised when this <see cref="T:Xamarin.Forms.MasterDetailPage" /> is presented or hidden.</summary>
+            <summary>Event that is raised when the visual element that is represented by the <see cref="P:Xamarin.Forms.MasterDetailPage.Master" /> property is presented or hidden.</summary>
             <remarks>To be added.</remarks>
         </member>
         <member name="F:Xamarin.Forms.MasterDetailPage.IsPresentedProperty">
@@ -6134,91 +6138,8 @@ Assert.AreEqual(2, subscriber.IntProperty);
         <member name="T:Xamarin.Forms.NavigationPage">
             <summary>A <see cref="T:Xamarin.Forms.Page" /> that manages the navigation and user-experience of a stack of other pages.</summary>
             <remarks>
-                <para>The following example shows a basic use:</para>
-                <example>
-                    <code lang="C#"><![CDATA[
-using System;
-using Xamarin.Forms;
-
-namespace FormsGallery
-{
-    // Although this page is actually a ContentPage, it can 
-    //  function as a NavigationPage because the HomePage
-    //  is launched as an ApplicationPage in App. 
-    class NavigationPageDemoPage : ContentPage
-    {
-        public NavigationPageDemoPage()
-        {
-            Label header = new Label
-            {
-                Text = "NavigationPage",
-                Font = Font.BoldSystemFontOfSize(40),
-                HorizontalOptions = LayoutOptions.Center
-            };
-
-            Button button1 = new Button
-            {
-                Text = " Go to Label Demo Page ",
-                Font = Font.SystemFontOfSize(NamedSize.Large),
-                BorderWidth = 1
-            };
-            button1.Clicked += async (sender, args) =>
-                await Navigation.PushAsync(new LabelDemoPage());
-
-            Button button2 = new Button
-            {
-                Text = " Go to Image Demo Page ",
-                Font = Font.SystemFontOfSize(NamedSize.Large),
-                BorderWidth = 1
-            };
-            button2.Clicked += async (sender, args) =>
-                await Navigation.PushAsync(new ImageDemoPage());
-
-            Button button3 = new Button
-            {
-                Text = " Go to BoxView Demo Page ",
-                Font = Font.SystemFontOfSize(NamedSize.Large),
-                BorderWidth = 1
-            };
-            button3.Clicked += async (sender, args) =>
-                await Navigation.PushAsync(new BoxViewDemoPage());
-
-            Button button4 = new Button
-            {
-                Text = " Go to WebView Demo Page ",
-                Font = Font.SystemFontOfSize(NamedSize.Large),
-                BorderWidth = 1
-            };
-            button4.Clicked += async (sender, args) =>
-                await Navigation.PushAsync(new WebViewDemoPage());
-
-            // Accomodate iPhone status bar.
-            this.Padding = new Thickness(10, Device.OnPlatform(20, 0, 0), 10, 5);
-
-            // Build the page.
-            this.Content = new StackLayout
-            {
-                Children = 
-                {
-                    header,
-                    new StackLayout
-                    {
-                        HorizontalOptions = LayoutOptions.Center,
-                        Children = 
-                        {
-                            button1,
-                            button2,
-                            button3,
-                            button4
-                        }
-                    }
-                }
-            };
-        }
-    }
-}
-]]></code>
-                </example>
+                <para>Note that on the Android platform, <see cref="T:Xamarin.Forms.INavigation" /> operations do not generate activity lifecycle notifications. For each <see cref="T:Xamarin.Forms.Page" /> that you push or pop, the Android implementation of <see cref="T:Xamarin.Forms.NavigationPage" /> simply adds or removes the content of the page to or from a single activity.</para>
+                <para>Also note that the Windows Phone platform provides navigation natively. Therefore, you do not need to use a <see cref="T:Xamarin.Forms.NavigationPage" /> object to get navigation on that platform.</para>
             </remarks>
         </member>
         <member name="C:Xamarin.Forms.NavigationPage">
@@ -6535,8 +6456,107 @@ namespace GLDemo
             </remarks>
         </member>
         <member name="T:Xamarin.Forms.Page">
-            <summary>A <see cref="T:Xamarin.Forms.VisualElement" /> that occupies most or all of the screen and contains a single child.</summary>
-            <remarks>To be added.</remarks>
+            <summary>A <see cref="T:Xamarin.Forms.VisualElement" /> that occupies the entire screen.</summary>
+            <remarks>
+                <para>
+                    <see cref="T:Xamarin.Forms.Page" /> is primarily a base class for more useful derived types. Objects that are derived from the see <see cref="T:Xamarin.Forms.Page" /> class, are most prominently used as the top level UI element in Xamarin.Forms applications. Typically, you will provide such an object to your target platforms by returning it from a static method that you create in a project that references Xamarin.Forms.Core. The contents of a typical App.cs file that would appear in project that reference Xamarin.Forms.Core are shown below:</para>
+                <example>
+                    <code lang="C#">
+using Xamarin.Forms;
+
+namespace MyFirstFormsApp
+{
+    public class App
+    {
+        public static Page GetMainPage()
+        {
+            return new ContentPage {
+                Content = new Label {
+                    Text = "Hello, Forms!",
+                    VerticalOptions = LayoutOptions.CenterAndExpand,
+                    HorizontalOptions = LayoutOptions.CenterAndExpand,
+                }
+            }; 
+        }
+    }
+}</code>
+                </example>
+                <para>While a <see cref="T:Xamarin.Forms.Page" /> object was passed in the example above, note that any class that extends <see cref="T:Xamarin.Forms.Page" /> could have been passed, instead. For example, by using conditional compilation or by checking the platform, you could pass a <see cref="T:Xamarin.Forms.CarouselPage" /> to your Windows Phone application, in order to better match the style of the user interface on that platform, while passing <see cref="T:Xamarin.Forms.ContentPage" /> objects or other Page types to the other platforms that you target.</para>
+                <para>The other projects in the solution that target the Windows Phone, iOS, and Android platforms can call this method to obtain the Xamarin.Forms.Page object that describes the portable user interface. Once you obtain a reference to the Page object, you can then use it with platform-specific methods and extensions to incorporate it into the native UI for each platform that you target.</para>
+
+    Note:   You must call the Xamarin.Forms.Init() method before you get or create any Xamarin.Forms elements.
+
+    <para>Each targeted platform uses the returned page in a different way. The Xamarin.Forms.Platform.iOS library provides Xamarin.Forms.Page.CreateViewController() extension method, which returns a UIViewController that you can assign to the UIWindow.RootViewController property of your top-level UI. This code is typically placed inside the UIApplicationDelegate.FinishedLaunching override for your main application class. A typical example is shown below:</para><example><code lang="C#">
+using System;
+using Xamarin.Forms;
+
+namespace MyFirstFormsApp.iOS
+{
+    [Register("AppDelegate")]
+    public partial class AppDelegate : UIApplicationDelegate
+    {
+        UIWindow window;
+
+        public override bool FinishedLaunching(UIApplication app, NSDictionary options)
+        {
+            Forms.Init();
+
+            window = new UIWindow(UIScreen.MainScreen.Bounds);
+
+            window.RootViewController = App.GetMainPage().CreateViewController();
+            window.MakeKeyAndVisible();
+
+            return true;
+        }
+    }
+}
+
+</code></example><para>The Xamarin.Forms.Platform.Android.AndroidActivity class provides the Xamarin.Forms.Platform.Android.AndroidActivity.SetPage method, which performs the work that is necessary to make its page argument the top-level UI element of the Xamarin.Forms.Platform.Android.AndroidActivity. A typical example is shown below:</para><example><code lang="C#">
+using System;
+using Android.App;
+using Android.OS;
+using Xamarin.Forms.Platform.Android;
+
+
+namespace MyFirstFormsApp.Android
+{
+    [Activity(Label = "MyFirstFormsApp", MainLauncher = true)]
+    public class MainActivity : AndroidActivity
+    {
+        protected override void OnCreate(Bundle bundle)
+        {
+            base.OnCreate(bundle);
+
+            Xamarin.Forms.Forms.Init(this, bundle);
+
+            SetPage(App.GetMainPage());
+        }
+    }
+}
+</code></example><para>For Windows Phone, <see cref="N:Xamarin.Forms" /> provides an extension method for <see cref="T:Xamarin.Forms.Page" /> that is called <see cref="M:Xamarin.Forms.Page.ConvertPageToUIElement" />. This method returns a System.Windows.UIElement object that has the page that was passed to it as its current page. A typical example is shown below:</para><example><code lang="C#">
+using System;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Navigation;
+using Microsoft.Phone.Controls;
+using Microsoft.Phone.Shell;
+
+using Xamarin.Forms;
+
+
+namespace MyFirstFormsApp.WinPhone
+{
+    public partial class MainPage : PhoneApplicationPage
+    {
+        public MainPage()
+        {
+            InitializeComponent();
+
+            Forms.Init();
+            Content = Phoneword.App.GetMainPage().ConvertPageToUIElement(this);
+        }
+    }
+} </code></example><para>In addition to their role as the main pages of Xamarin.Forms applications, Xamarin.Forms.Page objects and their descendants can be used with navigation classes, such as Xamarin.Forms.Navigation or Xamarin.Forms.MasterDetailPage, among others, to provide rich user experiences that conform to the expected behaviors on each platform.</para></remarks>
         </member>
         <member name="C:Xamarin.Forms.Page">
             <summary>Creates a new <see cref="T:Xamarin.Forms.Page" /> element with default values.</summary>
