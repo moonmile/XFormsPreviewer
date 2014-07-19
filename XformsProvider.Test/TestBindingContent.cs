@@ -178,7 +178,6 @@ namespace XformsProvider.Test
                 // data.DateTime = new DateTime(2000, 1, 2);
                 // Assert.AreEqual("", label.Text);
 
-
             }
 
             [TestMethod]
@@ -206,8 +205,10 @@ namespace XformsProvider.Test
                 Assert.IsNotNull(page);
                 var label = page.FindByName<Label>("label1");
                 var button = page.FindByName<Button>("button1");
+                Assert.IsNotNull(page.BindingContext);
                 Assert.IsNotNull(button);
-                // Assert.IsNotNull(button.Command);
+                Assert.IsNotNull(button.Command);
+
             }
         }
     }

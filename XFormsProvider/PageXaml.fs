@@ -137,6 +137,7 @@ module XForms =
 
             | "BindingContext" -> typeof<string>
             | "Command" -> typeof<string>
+            | "Clicked" -> typeof<string>
             | _ -> null
 
         /// <summary>
@@ -159,29 +160,37 @@ module XForms =
                         pageData.ClassName <- s
                     | _ -> ()
                 | _ -> 
-                    let pi = item.GetType().GetRuntimeProperty(propName.LocalName)
-                    if pi <> null then
-                        let obj =
-                            match t.Name with
-                            | "String" -> s :> obj
-                            | "Int32" -> s |> int :> obj
-                            | "Double" -> s |> double :> obj
-                            | "DateTime" -> Convert.ToDateTime(s) :> obj
-                            | "TimeSpan" -> TimeSpan.Parse(s) :> obj
-                            | "Boolean" -> Convert.ToBoolean(s) :> obj
-                            | "Color"  -> ColorTypeConverter().ConvertFrom(s)
-                            | "Font"   -> FontTypeConverter().ConvertFrom(s)
-                            | "Thickness" -> ThicknessTypeConverter().ConvertFrom(s)
-                            | "GridLength" -> GridLengthTypeConverter().ConvertFrom(s)
-                            | "LineBreakMode" -> LineBreakModeTypeConverter().ConvertFrom(s)
-                            | "TextAlignment" -> TextAlignmentTypeConverter().ConvertFrom(s)
-                            | "StackOrientation" -> StackOrientationTypeConverter().ConvertFrom(s)
-                            | "Keyboard" -> KeyboardTypeConverter().ConvertFrom(s)
-                            | "WebViewSource" -> WebViewSourceTypeConverter().ConvertFrom(s)
-                            | "LayoutOptions" -> LayoutOptionsTypeConverter().ConvertFrom(s)
-                            | _ -> null
-                        if obj <> null then
-                            pi.SetValue( item, obj )
+                    match propName.LocalName with
+                    | "Clicked" ->
+                        let t = Type.GetType(pageData.ClassName)
+                        let mi = t.GetRuntimeMethod(s, [|typeof<obj>; typeof<EventArgs>|])
+                        let de = mi.CreateDelegate(t)
+                        let ei = item.GetType().GetRuntimeEvent(propName.LocalName)
+                        ei.AddEventHandler( item, de )
+                    | _ ->
+                        let pi = item.GetType().GetRuntimeProperty(propName.LocalName)
+                        if pi <> null then
+                            let obj =
+                                match t.Name with
+                                | "String" -> s :> obj
+                                | "Int32" -> s |> int :> obj
+                                | "Double" -> s |> double :> obj
+                                | "DateTime" -> Convert.ToDateTime(s) :> obj
+                                | "TimeSpan" -> TimeSpan.Parse(s) :> obj
+                                | "Boolean" -> Convert.ToBoolean(s) :> obj
+                                | "Color"  -> ColorTypeConverter().ConvertFrom(s)
+                                | "Font"   -> FontTypeConverter().ConvertFrom(s)
+                                | "Thickness" -> ThicknessTypeConverter().ConvertFrom(s)
+                                | "GridLength" -> GridLengthTypeConverter().ConvertFrom(s)
+                                | "LineBreakMode" -> LineBreakModeTypeConverter().ConvertFrom(s)
+                                | "TextAlignment" -> TextAlignmentTypeConverter().ConvertFrom(s)
+                                | "StackOrientation" -> StackOrientationTypeConverter().ConvertFrom(s)
+                                | "Keyboard" -> KeyboardTypeConverter().ConvertFrom(s)
+                                | "WebViewSource" -> WebViewSourceTypeConverter().ConvertFrom(s)
+                                | "LayoutOptions" -> LayoutOptionsTypeConverter().ConvertFrom(s)
+                                | _ -> null
+                            if obj <> null then
+                                pi.SetValue( item, obj )
         
         member this.SetBinding(item:BaseElement, propName:XName, s:string) =
             if s.StartsWith("{Binding") && s.EndsWith("}") then
@@ -393,7 +402,8 @@ module XForms =
                 let value = el.Value
                 this.SetValue( pa, XName.Get(name), value, el.Name )
 
-                if name = "BindingContext" then
+                match name with
+                | "BindingContext" ->
                     let elBind = el.Children |> Seq.head
                     let ns = elBind.Name.NamespaceName
                     let asmNs = ns.Split([|';'|]).[0].Split([|':'|]).[1]
@@ -406,6 +416,7 @@ module XForms =
                         pi.SetValue( pa, obj )
                     with
                         | _ -> ()
+                | _ -> ()
                 null
         
         static member LoadXaml(xaml:string) = 
