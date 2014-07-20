@@ -48,3 +48,16 @@ module XFormsTypeConv =
             | _ -> LayoutOptions.Start
             :> System.Object
 
+
+type DateTimeConverter() =
+    interface Xamarin.Forms.IValueConverter with
+        member x.Convert(value: obj, targetType: Type, parameter: obj, culture: Globalization.CultureInfo): obj = 
+            let date = value :?> DateTime
+            date.ToString() :> obj     
+        member x.ConvertBack(value: obj, targetType: Type, parameter: obj, culture: Globalization.CultureInfo): obj = 
+            let strValue = value :?> string
+            let mutable resultDateTime:DateTime = DateTime()
+            if DateTime.TryParse(strValue, ref resultDateTime) then
+                resultDateTime :> obj
+            else
+                DateTime() :> obj

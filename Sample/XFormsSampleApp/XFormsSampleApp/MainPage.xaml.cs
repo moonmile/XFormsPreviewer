@@ -110,7 +110,7 @@ namespace XFormsSampleApp
 </ContentPage.BindingContext>
 <StackLayout>
 "
- + "<Label x:Name='label1' Text=\"{Binding DateTime, StringFormat='{0:T}'}\""
+ + "<Label x:Name='label1' Text=\"{Binding DateTime, StringFormat='today is {0:T}'}\""
  + @"    Font='Large'
          HorizontalOptions='Center'
          VerticalOptions='Center' />

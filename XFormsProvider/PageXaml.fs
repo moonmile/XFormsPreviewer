@@ -6,6 +6,7 @@ open System.IO
 open System.Reflection
 open Xamarin.Forms
 open Moonmile.XFormsTypeConv
+open System.Text.RegularExpressions
 
 module XForms =
     
@@ -48,6 +49,15 @@ module XForms =
             let ( _, pdata ) = Pages |> Seq.find( fun(p,d) -> p = page )
             let ( _, el ) =  pdata.ElementNames |> Seq.find( fun(n,el) -> n = name )
             el
+
+    type Page with
+        /// <summary>
+        /// alias FindByName
+        /// </summary>
+        /// <param name="name"></param>
+        member this.FindByName<'T when 'T :> Element >(name:string) =
+            FindByName(name, this) :?> 'T
+
 
     // Xamarin製XAMLをパースするクラス
     type ParseXaml() = 
@@ -194,7 +204,12 @@ module XForms =
         
         member this.SetBinding(item:BaseElement, propName:XName, s:string) =
             if s.StartsWith("{Binding") && s.EndsWith("}") then
-                let items = s.Replace("{Binding","").Replace("}","").Split([|','|])
+                let replace (pattern:string, replacement:string) input:string = 
+                    Regex.Replace(input, pattern, replacement)
+                let s' = s  |> replace ("^{Binding","")
+                            |> replace ("}$", "") 
+                let items = s'.Split([|','|])
+                // let items = s.Replace("{Binding","").Replace("}","").Split([|','|])
                 let mutable path = ""
                 let mutable format = ""
                 let mutable mode = BindingMode.Default
@@ -210,7 +225,7 @@ module XForms =
                         | "TwoWay" -> mode <- BindingMode.TwoWay
                         | _ -> mode <- BindingMode.Default
                     | _ when it'.StartsWith("StringFormat=") ->
-                        format <- it'.Replace("StringFormat=","").Replace("'","")
+                        format <- it' |> replace ("^StringFormat='","") |> replace ("'$","" )
                     | _ -> path <- it'.Trim()
                 
                 let prop = item.GetType().GetRuntimeField(propName.LocalName + "Property")
