@@ -14,6 +14,18 @@
 <member name="">
 
 </member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
 <member name="M:Moonmile.XForms.ParseXaml.SetValue(Xamarin.Forms.BindableObject,System.Xml.Linq.XName,System.String,System.Xml.Linq.XName)">
  <summary>
  プロパティへ値を設定する
@@ -114,6 +126,12 @@
 </member>
 <member name="">
 
+</member>
+<member name="M:Moonmile.XForms.Page.FindByName``1(Xamarin.Forms.Page,System.String)">
+ <summary>
+ alias FindByName
+ </summary>
+ <param name="name"></param>
 </member>
 <member name="M:Moonmile.XForms.FindByName(System.String,Xamarin.Forms.Page)">
  <summary>
