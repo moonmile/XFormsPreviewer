@@ -127,7 +127,7 @@
 <member name="">
 
 </member>
-<member name="M:Moonmile.XForms.Page.FindByName``1(Xamarin.Forms.Page,System.String)">
+<member name="M:Moonmile.XForms.Page.FindName``1(Xamarin.Forms.Page,System.String)">
  <summary>
  alias FindByName
  </summary>

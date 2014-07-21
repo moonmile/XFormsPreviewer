@@ -55,7 +55,7 @@ module XForms =
         /// alias FindByName
         /// </summary>
         /// <param name="name"></param>
-        member this.FindByName<'T when 'T :> Element >(name:string) =
+        member this.FindByName<'T when 'T :> Element >( name:string) =
             FindByName(name, this) :?> 'T
 
 
@@ -209,7 +209,6 @@ module XForms =
                 let s' = s  |> replace ("^{Binding","")
                             |> replace ("}$", "") 
                 let items = s'.Split([|','|])
-                // let items = s.Replace("{Binding","").Replace("}","").Split([|','|])
                 let mutable path = ""
                 let mutable format = ""
                 let mutable mode = BindingMode.Default
