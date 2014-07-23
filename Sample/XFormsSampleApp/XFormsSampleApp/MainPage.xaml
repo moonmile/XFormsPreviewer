@@ -7,6 +7,7 @@
 			BackgroundColor="Blue"/>
     	<Label Text="This is a Sample XAML code of Xamarin.Forms Previewer" />
 		<Button Text="Click me!" />
-    <Button Text="Load Clock Page" Clicked="OnClickedClock" />
+    <Button Text="Load Clock Page(Clicked)" Clicked="OnClickedClock" />
+    <Button x:Name="button1" Text="Load Clock Page(event)" />
 	</StackLayout>
 </ContentPage>

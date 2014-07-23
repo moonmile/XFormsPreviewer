@@ -127,12 +127,6 @@
 <member name="">
 
 </member>
-<member name="M:Moonmile.XForms.Page.FindName``1(Xamarin.Forms.Page,System.String)">
- <summary>
- alias FindByName
- </summary>
- <param name="name"></param>
-</member>
 <member name="M:Moonmile.XForms.FindByName(System.String,Xamarin.Forms.Page)">
  <summary>
  名前解決
@@ -160,6 +154,12 @@
 </member>
 <member name="">
 
+</member>
+<member name="M:Moonmile.XFormsProvider.PageXaml.FindByName``1(Xamarin.Forms.Page,System.String)">
+ <summary>
+ Alias FindByName from Xamarin.Forms
+ </summary>
+ <param name="name"></param>
 </member>
 <member name="">
 

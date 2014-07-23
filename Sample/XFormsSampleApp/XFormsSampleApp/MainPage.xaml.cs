@@ -11,7 +11,6 @@ using System.Windows.Input;
 using System.Xml.Linq;
 using System.IO;
 
-
 namespace XFormsSampleApp
 {
     public abstract class BindableBase : INotifyPropertyChanged
@@ -95,8 +94,25 @@ namespace XFormsSampleApp
         public MainPage()
         {
             InitializeComponent();
+
+            this.button1.Clicked += button1_Clicked;
+
+        }
+        /// <summary>
+        /// Clicked event version
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void button1_Clicked(object sender, EventArgs e)
+        {
+            OnClickedClock(sender, e);
         }
 
+        /// <summary>
+        /// XAML Clicked attribute version
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void OnClickedClock(object sender, EventArgs e)
         {
             string xml = @"<?xml version='1.0' encoding='utf-8' ?>
@@ -120,6 +136,7 @@ namespace XFormsSampleApp
 
 
             var page = PageXaml.LoadXaml<ContentPage>(xml);
+
             var vm = page.BindingContext as ClockViewModel;
             page.FindByName<Button>("button1").Clicked += (s, ee) =>
             {

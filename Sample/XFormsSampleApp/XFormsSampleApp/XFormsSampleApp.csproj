@@ -58,9 +58,6 @@
     <Reference Include="XFormsProvider">
       <HintPath>..\..\..\lib\XFormsProvider.dll</HintPath>
     </Reference>
-    <Reference Include="XFormsProvider.CSharp">
-      <HintPath>..\..\..\lib\XFormsProvider.CSharp.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

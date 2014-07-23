@@ -8,6 +8,7 @@ open Xamarin.Forms
 open Moonmile.XFormsTypeConv
 open System.Text.RegularExpressions
 
+[<CompiledName "MyXForms">]
 module XForms =
     
     /// XElement の拡張メソッド
@@ -50,14 +51,18 @@ module XForms =
             let ( _, el ) =  pdata.ElementNames |> Seq.find( fun(n,el) -> n = name )
             el
 
-    type Page with
+(*
+    [<Extension>]
+    type PageExtensions = 
         /// <summary>
         /// alias FindByName
         /// </summary>
         /// <param name="name"></param>
-        member this.FindByName<'T when 'T :> Element >( name:string) =
+        [<Extension>]
+        [<CompiledName "Hoge">]
+        static member FindByName<'T when 'T :> Element >(this, name:string) =
             FindByName(name, this) :?> 'T
-
+*)
 
     // Xamarin製XAMLをパースするクラス
     type ParseXaml() = 

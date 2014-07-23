@@ -6,7 +6,10 @@ open System.IO
 open System.Reflection
 open Xamarin.Forms
 open Moonmile.XFormsTypeConv
+open System.Runtime.CompilerServices
+open Moonmile.XForms
 
+[<Extension>]
 type PageXaml() =
     static member LoadXaml(xaml:string) = 
         Moonmile.XForms.ParseXaml.LoadXaml(xaml)
@@ -16,8 +19,12 @@ type PageXaml() =
 
     static member FindByName(page:Page, name:string) =
         Moonmile.XForms.FindByName(name, page)
-(*
-type Page with
-    member this.FindByName( name:string ) = 
-        PageXaml.FindByName( name, page)
-*)
+
+    /// <summary>
+    /// Alias FindByName from Xamarin.Forms
+    /// </summary>
+    /// <param name="name"></param>
+    [<Extension>]
+    static member FindByName<'T when 'T :> Element >(this, name:string) =
+        FindByName(name, this) :?> 'T
+
