@@ -15,9 +15,9 @@ However, since it does not depend on FSharp.Core.dll, you can use in the same wa
 - Easy preview tool
 - Easy preview host (easy http server)
 - NuGet
-- use x:Name by FindByName<T>("name")
-- use Data Binding ex. Text="{Binding propName}"
-- use Command event ex. Command="{Binding ClickCommand}"
+- Use x:Name by FindByName<T>("name")
+- Use Data Binding ex. Text="{Binding propName}"
+- Use Command event ex. Command="{Binding ClickCommand}"
 - Auto loading BindingContext ex. <local:MyViewModelData />
 
 # NuGet
@@ -38,6 +38,10 @@ The MIT License (MIT)
 - Static Resource の参照
 - 外部UIモジュールの参照（特に Xamarin.Forms.Labs）
 - デザイン時の Data Binding の実装
+
+# History
+
+- ver.0.1.5 standalone compile switch and modified FileByName<> method
 
 # 日本語の解説
 
