@@ -41,7 +41,8 @@ The MIT License (MIT)
 
 # History
 
-- ver.0.1.5 standalone compile switch and modified FileByName<> method
+- ver.0.1.6 2014/07/25 FindByName bugfix and Xamarin.Forms version up
+- ver.0.1.5 2014/07/24 standalone compile switch and modified FileByName<> method
 
 # 日本語の解説
 

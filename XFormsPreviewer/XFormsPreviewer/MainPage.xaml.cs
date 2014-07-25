@@ -102,6 +102,7 @@ namespace XFormsPreviewer
         {
             /// TODO: ボタンを自動生成して表示する
             /// 再表示はできないので、固定ボタン 1-10 に割り当てる
+            /// ListViewを使うと可能
         }
 
 
