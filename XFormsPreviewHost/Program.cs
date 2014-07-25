@@ -44,6 +44,10 @@ namespace XFormsPreviewHost
         {
             string prefix = string.Format( "http://*:{0}/", this.Port );
 
+            /// TODO: ベースフォルダを指定する
+            /// フォルダ内の *.xaml ファイルのリストを取得して、LoadPaths に保持する
+
+
             if (!HttpListener.IsSupported)
             {
                 Console.WriteLine("Not Supported!");
@@ -65,7 +69,11 @@ namespace XFormsPreviewHost
                 res.ContentEncoding = Encoding.UTF8;
 
                 var path = req.Url.LocalPath;
-                if ( path.StartsWith("/get"))
+                if ( path.StartsWith("/list"))
+                {
+                    /// TODO: *.xaml ファイルの一覧を返す
+                }
+                else if ( path.StartsWith("/get"))
                 {
                     var num = path.Replace("/get/", "");
                     if ( this.LoadPaths.ContainsKey(num)) {

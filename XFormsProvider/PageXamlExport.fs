@@ -25,6 +25,6 @@ type PageXaml() =
     /// </summary>
     /// <param name="name"></param>
     [<Extension>]
-    static member FindByName<'T when 'T :> Page >(this, name:string) =
+    static member FindByName<'T when 'T :> Element >(this, name:string) =
         FindByName(name, this) :?> 'T
 

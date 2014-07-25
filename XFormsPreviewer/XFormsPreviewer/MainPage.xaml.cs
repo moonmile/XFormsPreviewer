@@ -94,6 +94,18 @@ namespace XFormsPreviewer
 
 
         /// <summary>
+        /// TODO: ホスト接続して *.xaml 一覧を取得する
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void OnClickGetList(object sender, EventArgs e)
+        {
+            /// TODO: ボタンを自動生成して表示する
+            /// 再表示はできないので、固定ボタン 1-10 に割り当てる
+        }
+
+
+        /// <summary>
         /// HTTP クライアント経由で XAML ファイルをロードする
         /// http://hostname:10150/get/[num] 形式で取得する
         /// [num] 部分は XFormsPreviewHost と合わせる

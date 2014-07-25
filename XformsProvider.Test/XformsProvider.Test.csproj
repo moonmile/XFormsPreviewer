@@ -73,10 +73,6 @@
     <Compile Include="TestGridDemoPage.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\XFormsProvider.CSharp\XFormsProvider.CSharp.csproj">
-      <Project>{aea3342a-cdac-47f9-9f37-a8c7f61b8858}</Project>
-      <Name>XFormsProvider.CSharp</Name>
-    </ProjectReference>
     <ProjectReference Include="..\XFormsProvider\XFormsProvider.fsproj">
       <Project>{7c89346b-27e7-46f9-b3b8-89a457556030}</Project>
       <Name>XFormsProvider</Name>

@@ -51,19 +51,6 @@ module XForms =
             let ( _, el ) =  pdata.ElementNames |> Seq.find( fun(n,el) -> n = name )
             el
 
-(*
-    [<Extension>]
-    type PageExtensions = 
-        /// <summary>
-        /// alias FindByName
-        /// </summary>
-        /// <param name="name"></param>
-        [<Extension>]
-        [<CompiledName "Hoge">]
-        static member FindByName<'T when 'T :> Element >(this, name:string) =
-            FindByName(name, this) :?> 'T
-*)
-
     // Xamarin製XAMLをパースするクラス
     type ParseXaml() = 
 
@@ -177,13 +164,15 @@ module XForms =
                 | _ -> 
                     match propName.LocalName with
                     | "Clicked" ->
+                    (*  TODO: clicked event pending
                         let t = Type.GetType(pageData.ClassName)
                         let mi = t.GetRuntimeMethod(s, [|typeof<obj>; typeof<EventArgs>|])
                         let de = mi.CreateDelegate(t)
                         let ei = item.GetType().GetRuntimeEvent(propName.LocalName)
                         ei.AddEventHandler( item, de )
+                    *)  ()
                     | _ ->
-                        let pi = item.GetType().GetRuntimeProperty(propName.LocalName)
+                        let pi = item.GetType().GetRuntimeProperty(propName.LocalName) 
                         if pi <> null then
                             let obj =
                                 match t.Name with
@@ -233,9 +222,10 @@ module XForms =
                     | _ -> path <- it'.Trim()
                 
                 let prop = item.GetType().GetRuntimeField(propName.LocalName + "Property")
-                let bp = prop.GetValue( item ) :?> BindableProperty 
-                let bind = new Binding( path, mode, null, format )
-                item.SetBinding( bp, bind )
+                if prop <> null then
+                    let bp = prop.GetValue( item ) :?> BindableProperty 
+                    let bind = new Binding( path, mode, null, format )
+                    item.SetBinding( bp, bind )
 
         member this.SetValue(el:XElement, item:BaseElement, propName:XName ) =
             if el.Attribute(propName) = null then

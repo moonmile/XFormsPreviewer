@@ -109,7 +109,7 @@ namespace XformsProvider.Test
       <local:ClockViewModel />
     </Label.BindingContext>
   </Label>
-    <Button x:Name='button1' Text='Click now' Command='OnClickButton1' />
+    <Button x:Name='button1' Text='Click now' />
 </ContentPage>";
 
             var page = PageXaml.LoadXaml<ContentPage>(xml);
