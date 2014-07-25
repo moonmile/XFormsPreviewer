@@ -14,7 +14,7 @@
     <TargetProfile>netcore</TargetProfile>
     <TargetFSharpCoreVersion>3.3.1.0</TargetFSharpCoreVersion>
     <Name>XFormsProvider</Name>
-    <NuGetPackageImportStamp>f83a1436</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>971cd163</NuGetPackageImportStamp>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>

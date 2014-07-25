@@ -13,7 +13,7 @@
         <tags>Xmarin.Forms</tags>
     	<copyright>Copyright 2014</copyright>
 	    <dependencies>
-	      <dependency id="Xamarin.Forms" version="1.2.1.6224" />
+	      <dependency id="Xamarin.Forms" version="1.2.1.6229" />
 	    </dependencies>    
     </metadata>
 	<files>

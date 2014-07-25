@@ -8,7 +8,6 @@ open Xamarin.Forms
 open Moonmile.XFormsTypeConv
 open System.Text.RegularExpressions
 
-[<CompiledName "MyXForms">]
 module XForms =
     
     /// XElement の拡張メソッド
